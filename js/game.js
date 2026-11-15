@@ -98,7 +98,8 @@ const Game = {
         }
         flash.classList.add('flash');
         clearTimeout(this._flashTimer);
-        this._flashTimer = setTimeout(() => flash.classList.remove('flash'), 150);},
+        this._flashTimer = setTimeout(() => flash.classList.remove('flash'), 150);
+    },
 
     setupEvents() {
         window.addEventListener('keydown', (e) => {
@@ -382,7 +383,9 @@ const Game = {
         }
 
         MapModule.drawMinimap(ctx);
-    },idleDraw() {
+    },
+
+    idleDraw() {
         const self = this;
         function loop() {
             State.globalTime = performance.now();
