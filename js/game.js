@@ -213,12 +213,19 @@ const Game = {
     },
 
     draw() {
-        const ctx = this.ctx;
-        const W = CONFIG.W, H = CONFIG.H;
-        ctx.clearRect(0, 0, W, H);
+    const ctx = this.ctx;
+    const W = CONFIG.W, H = CONFIG.H;
+    ctx.clearRect(0, 0, W, H);
 
-        const camX = Math.max(0, Math.min(State.MAP_W * CONFIG.TILE - W, State.player.x - W / 2));
-        const camY = Math.max(0, Math.min(State.MAP_H * CONFIG.TILE - H, State.player.y - H / 2));
+    // ЗАЩИТА ОТ NaN
+    if (!isFinite(State.player.x) || !isFinite(State.player.y)) {
+        console.warn("Координаты игрока сломаны, сброс на центр");
+        State.player.x = CONFIG.W / 2;
+        State.player.y = CONFIG.H / 2;
+    }
+
+    const camX = Math.max(0, Math.min(State.MAP_W * CONFIG.TILE - W, State.player.x - W / 2));
+    const camY = Math.max(0, Math.min(State.MAP_H * CONFIG.TILE - H, State.player.y - H / 2));
         ctx.save();
         ctx.translate(-camX, -camY);
 
