@@ -194,7 +194,7 @@ const Game = {
         State.lastTime = now;
         State.globalTime = now;
 
-        // Защита от NaN в координатах игрока
+        if (!State.player) return;
         if (!isFinite(State.player.x)) State.player.x = CONFIG.W / 2;
         if (!isFinite(State.player.y)) State.player.y = CONFIG.H / 2;
         if (!isFinite(State.player.hp)) State.player.hp = State.player.maxHp;
@@ -214,13 +214,8 @@ const Game = {
         const W = CONFIG.W, H = CONFIG.H;
         ctx.clearRect(0, 0, W, H);
 
-        // ГЛАВНАЯ ЗАЩИТА ОТ NaN
         if (!State.player || !isFinite(State.player.x) || !isFinite(State.player.y)) {
-            if (State.player) {
-                State.player.x = CONFIG.W / 2;
-                State.player.y = CONFIG.H / 2;
-            }
-            return; // Пропускаем кадр, если игрок сломан
+            return;
         }
 
         const camX = Math.max(0, Math.min(State.MAP_W * CONFIG.TILE - W, State.player.x - W / 2));
@@ -229,13 +224,10 @@ const Game = {
         ctx.save();
         ctx.translate(-camX, -camY);
 
-        // 1. Карта
         MapModule.draw(ctx, State.player);
 
-        // 2. Сундуки
         for (const chest of State.chests) {
             if (chest.opened) continue;
-            // ЗАЩИТА ОТ NaN
             if (!isFinite(chest.x) || !isFinite(chest.y)) continue;
 
             const t = State.globalTime * 0.003;
@@ -256,9 +248,7 @@ const Game = {
             ctx.beginPath(); ctx.arc(chest.x - 1, chest.y + 1, 1.5, 0, Math.PI * 2); ctx.fill();
         }
 
-        // 3. Предметы
         for (let item of State.items) {
-            // ЗАЩИТА ОТ NaN
             if (!isFinite(item.x) || !isFinite(item.y)) continue;
 
             const bobY = Math.sin(item.bob) * 4;
@@ -312,7 +302,6 @@ const Game = {
             }
         }
 
-        // 4. Враги
         for (let e of State.enemies) {
             if (!isFinite(e.x) || !isFinite(e.y)) continue;
             Sprites.drawEnemy(ctx, e);
@@ -327,10 +316,8 @@ const Game = {
             }
         }
 
-        // 5. Игрок
         Sprites.drawPlayer(ctx, State.player.x, State.player.y, State.player.facing);
 
-        // 6. Эффекты удара
         for (let ef of State.effects) {
             if (ef.type === 'slash') {
                 ctx.save();
@@ -353,7 +340,6 @@ const Game = {
             }
         }
 
-        // 7. Частицы
         for (let p of State.particles) {
             if (!isFinite(p.x) || !isFinite(p.y)) continue;
             ctx.globalAlpha = p.life / p.maxLife;
@@ -364,7 +350,6 @@ const Game = {
         }
         ctx.globalAlpha = 1;
 
-        // 8. Всплывающий текст
         ctx.font = 'bold 16px Times New Roman';
         ctx.textAlign = 'center';
         for (let ft of State.floatingTexts) {
@@ -380,7 +365,6 @@ const Game = {
 
         ctx.restore();
 
-        // 9. Индикатор радиуса атаки (поверх всего, вне камеры)
         if (State.player.alive && State.player.classData && State.gameRunning) {
             ctx.globalAlpha = 0.06;
             ctx.strokeStyle = State.player.classData.weaponGlow;
@@ -392,7 +376,6 @@ const Game = {
             ctx.shadowBlur = 0; ctx.globalAlpha = 1;
         }
 
-        // 10. Мини-карта
         MapModule.drawMinimap(ctx);
     },
 
