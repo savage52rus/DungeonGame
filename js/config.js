@@ -114,3 +114,178 @@ const State = {
     allRoomsCleared: false,
     MAP_W: 0, MAP_H: 0,
 };
+// === Редкости предметов ===
+const RARITIES = {
+    common: { name: 'Обычный', color: '#c9ad8a', weight: 0.60, statMult: 1.0 },
+    magic: { name: 'Магический', color: '#6af', weight: 0.28, statMult: 1.4 },
+    rare: { name: 'Редкий', color: '#fc6', weight: 0.10, statMult: 1.9 },
+    legendary: { name: 'Легендарный', color: '#f80', weight: 0.02, statMult: 2.6 },
+};
+
+// === Шаблоны предметов ===
+const ITEM_TEMPLATES = [
+    // Оружие
+    { id: 'sword', type: 'weapon', icon: '🗡️', names: ['Клинок', 'Меч', 'Сабли'], stat: 'damageBonus', statName: 'Урон' },
+    { id: 'axe', type: 'weapon', icon: '🪓', names: ['Топор', 'Секира', 'Колун'], stat: 'damageBonus', statName: 'Урон' },
+    { id: 'bow', type: 'weapon', icon: '🏹', names: ['Лук', 'Арбалет', 'Тетива'], stat: 'damageBonus', statName: 'Урон' },
+    { id: 'staff', type: 'weapon', icon: '🪄', names: ['Посох', 'Жезл', 'Скипетр'], stat: 'damageBonus', statName: 'Урон' },
+    // Броня
+    { id: 'armor', type: 'armor', icon: '🥋', names: ['Кираса', 'Доспех', 'Мантия'], stat: 'armorBonus', statName: 'Броня' },
+    { id: 'helmet', type: 'armor', icon: '⛑️', names: ['Шлем', 'Каска', 'Венец'], stat: 'armorBonus', statName: 'Броня' },
+    // Кольца
+    { id: 'ring', type: 'ring', icon: '💍', names: ['Кольцо', 'Перстень', 'Печатка'], stat: 'hpBonus', statName: 'HP' },
+    { id: 'amulet', type: 'ring', icon: '📿', names: ['Амулет', 'Оберег', 'Талисман'], stat: 'hpBonus', statName: 'HP' },
+    // Зелья
+    { id: 'potion', type: 'potion', icon: '🧪', names: ['Зелье лечения', 'Эликсир'], stat: 'heal', statName: 'Лечение' },
+];
+
+// === Умения по классам ===
+const SKILLS = {
+    barbarian: {
+        name: 'Рывок',
+        icon: '💨',
+        cooldown: 4000,
+        manaCost: 20,
+        desc: 'Быстрый бросок вперёд, сбивает врагов',
+        execute: function(player, state) {
+            const dx = Math.cos(player.facing === 'right' ? 0 : Math.PI) * 200;
+            const dist = 150;
+            // Телепортация вперёд с проверкой стен
+            const targetX = player.x + (player.facing === 'right' ? dist : -dist);
+            const steps = 20;
+            for (let i = 1; i <= steps; i++) {
+                const nx = player.x + ((targetX - player.x) * i / steps);
+                if (!MapModule.circleHitsWall(nx, player.y, CONFIG.PLAYER_RADIUS)) {
+                    player.x = nx;
+                } else break;
+            }
+            // Урон врагам в радиусе 60
+            const r = 60;
+            for (const e of state.enemies) {
+                const d = Math.hypot(e.x - player.x, e.y - player.y);
+                if (d < r + e.radius) {
+                    e.hp -= Player.getEffectiveDamage() * 1.5;
+                    Player.createHitEffect(e.x, e.y);
+                    state.floatingTexts.push({ x: e.x, y: e.y - e.radius - 5, text: '-' + Math.floor(Player.getEffectiveDamage() * 1.5), color: '#fa0', life: 1.0, vy: -1.5 });
+                }
+            }
+            // Эффект
+            for (let i = 0; i < 20; i++) {
+                state.particles.push({
+                    x: player.x + (Math.random()-0.5)*40,
+                    y: player.y + (Math.random()-0.5)*40,
+                    vx: (Math.random()-0.5)*8, vy: (Math.random()-0.5)*8,
+                    life: 0.6, maxLife: 0.6, color: '#fa0', size: 3 + Math.random()*3,
+                });
+            }
+        }
+    },
+    amazon: {
+        name: 'Залп',
+        icon: '🎯',
+        cooldown: 3500,
+        manaCost: 25,
+        desc: 'Стрелы по всем врагам вокруг',
+        execute: function(player, state) {
+            const range = Player.getEffectiveRange() * 1.2;
+            const dmg = Player.getEffectiveDamage() * 0.8;
+            for (const e of state.enemies) {
+                const d = Math.hypot(e.x - player.x, e.y - player.y);
+                if (d < range + e.radius) {
+                    e.hp -= dmg;
+                    Player.createHitEffect(e.x, e.y);
+                    state.floatingTexts.push({ x: e.x, y: e.y - e.radius - 5, text: '-' + Math.floor(dmg), color: '#8fc', life: 1.0, vy: -1.5 });
+                }
+            }
+            for (let i = 0; i < 25; i++) {
+                const a = Math.random() * Math.PI * 2;
+                const r = Math.random() * range;
+                state.particles.push({
+                    x: player.x + Math.cos(a) * r, y: player.y + Math.sin(a) * r,
+                    vx: Math.cos(a) * 3, vy: Math.sin(a) * 3,
+                    life: 0.7, maxLife: 0.7, color: '#8fc', size: 3 + Math.random()*3,
+                });
+            }
+        }
+    },
+    sorceress: {
+        name: 'Огненный шар',
+        icon: '🔥',
+        cooldown: 5000,
+        manaCost: 30,
+        desc: 'Взрыв огня по площади',
+        execute: function(player, state) {
+            const r = 180;
+            const dmg = Player.getEffectiveDamage() * 2;
+            for (const e of state.enemies) {
+                const d = Math.hypot(e.x - player.x, e.y - player.y);
+                if (d < r + e.radius) {
+                    e.hp -= dmg * (1 - d / r * 0.4);
+                    Player.createHitEffect(e.x, e.y);
+                    state.floatingTexts.push({ x: e.x, y: e.y - e.radius - 5, text: '-' + Math.floor(dmg), color: '#f80', life: 1.0, vy: -1.5 });
+                }
+            }
+            for (let i = 0; i < 40; i++) {
+                const a = Math.random() * Math.PI * 2;
+                const r2 = Math.random() * r;
+                state.particles.push({
+                    x: player.x + Math.cos(a) * r2, y: player.y + Math.sin(a) * r2,
+                    vx: Math.cos(a) * 5, vy: Math.sin(a) * 5 - 2,
+                    life: 0.9, maxLife: 0.9, color: i % 2 ? '#f80' : '#f44', size: 4 + Math.random()*4,
+                });
+            }
+        }
+    },
+    paladin: {
+        name: 'Исцеление',
+        icon: '✨',
+        cooldown: 6000,
+        manaCost: 35,
+        desc: 'Восстанавливает 40 HP',
+        execute: function(player, state) {
+            const heal = 40;
+            player.hp = Math.min(player.maxHp, player.hp + heal);
+            state.floatingTexts.push({ x: player.x, y: player.y - 40, text: '+' + heal + ' HP', color: '#8fc', life: 1.5, vy: -2 });
+            for (let i = 0; i < 30; i++) {
+                const a = Math.random() * Math.PI * 2;
+                const r = 20 + Math.random() * 40;
+                state.particles.push({
+                    x: player.x + Math.cos(a) * r, y: player.y + Math.sin(a) * r,
+                    vx: Math.cos(a) * 1.5, vy: -2 - Math.random(),
+                    life: 1.0, maxLife: 1.0, color: '#ffe9a0', size: 3 + Math.random()*3,
+                });
+            }
+            UI.update();
+        }
+    },
+    necromancer: {
+        name: 'Ядовитое облако',
+        icon: '☠️',
+        cooldown: 4500,
+        manaCost: 28,
+        desc: 'Отравляет врагов в радиусе',
+        execute: function(player, state) {
+            const r = 160;
+            const dmg = Player.getEffectiveDamage() * 0.6;
+            for (const e of state.enemies) {
+                const d = Math.hypot(e.x - player.x, e.y - player.y);
+                if (d < r + e.radius) {
+                    e.hp -= dmg * 2;
+                    e.poisoned = 3.0; // тикающий урон
+                    Player.createHitEffect(e.x, e.y);
+                    state.floatingTexts.push({ x: e.x, y: e.y - e.radius - 5, text: '-' + Math.floor(dmg * 2), color: '#8f6', life: 1.0, vy: -1.5 });
+                }
+            }
+            for (let i = 0; i < 50; i++) {
+                const a = Math.random() * Math.PI * 2;
+                const r2 = Math.random() * r;
+                state.particles.push({
+                    x: player.x + Math.cos(a) * r2, y: player.y + Math.sin(a) * r2,
+                    vx: (Math.random()-0.5)*2, vy: -1 - Math.random()*2,
+                    life: 1.5, maxLife: 1.5, color: '#8f6', size: 5 + Math.random()*5,
+                });
+            }
+        }
+    }
+};
+
