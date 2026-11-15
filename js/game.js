@@ -218,6 +218,12 @@ const Game = {
             return;
         }
 
+        // Безопасное создание градиента
+        const safeGrad = (x, y, r1, r2) => {
+            if (!isFinite(x) || !isFinite(y) || !isFinite(r1) || !isFinite(r2)) return null;
+            return ctx.createRadialGradient(x, y, r1, x, y, r2);
+        };
+
         const camX = Math.max(0, Math.min(State.MAP_W * CONFIG.TILE - W, State.player.x - W / 2));
         const camY = Math.max(0, Math.min(State.MAP_H * CONFIG.TILE - H, State.player.y - H / 2));
         
@@ -226,13 +232,16 @@ const Game = {
 
         MapModule.draw(ctx, State.player);
 
+        // 1. Сундуки
         for (const chest of State.chests) {
             if (chest.opened) continue;
             if (!isFinite(chest.x) || !isFinite(chest.y)) continue;
 
             const t = State.globalTime * 0.003;
             const glow = Math.sin(t) * 0.3 + 0.5;
-            const grd = ctx.createRadialGradient(chest.x, chest.y, 5, chest.x, chest.y, 40);
+            const grd = safeGrad(chest.x, chest.y, 5, 40);
+            if (!grd) continue;
+            
             grd.addColorStop(0, `rgba(255,200,80,${glow * 0.4})`);
             grd.addColorStop(1, 'rgba(255,150,0,0)');
             ctx.fillStyle = grd;
@@ -248,36 +257,46 @@ const Game = {
             ctx.beginPath(); ctx.arc(chest.x - 1, chest.y + 1, 1.5, 0, Math.PI * 2); ctx.fill();
         }
 
+        // 2. Предметы
         for (let item of State.items) {
             if (!isFinite(item.x) || !isFinite(item.y)) continue;
 
             const bobY = Math.sin(item.bob) * 4;
+            const iy = item.y + bobY;
+            if (!isFinite(iy)) continue;
+
             if (item.pickupType === 'item') {
                 const rarity = RARITIES[item.rarity];
-                ctx.shadowColor = rarity.color;
-                ctx.shadowBlur = 15;
-                const grd = ctx.createRadialGradient(item.x, item.y + bobY, 2, item.x, item.y + bobY, 20);
-                grd.addColorStop(0, rarity.color);
-                grd.addColorStop(1, 'rgba(0,0,0,0)');
-                ctx.fillStyle = grd;
-                ctx.beginPath(); ctx.arc(item.x, item.y + bobY, 20, 0, Math.PI * 2); ctx.fill();
+                const grd = safeGrad(item.x, iy, 2, 20);
+                if (grd) {
+                    ctx.shadowColor = rarity.color;
+                    ctx.shadowBlur = 15;
+                    grd.addColorStop(0, rarity.color);
+                    grd.addColorStop(1, 'rgba(0,0,0,0)');
+                    ctx.fillStyle = grd;
+                    ctx.beginPath(); ctx.arc(item.x, iy, 20, 0, Math.PI * 2); ctx.fill();
+                }
                 ctx.font = '20px Arial';
                 ctx.textAlign = 'center';
                 ctx.textBaseline = 'middle';
-                ctx.fillText(item.icon, item.x, item.y + bobY);
+                ctx.fillText(item.icon, item.x, iy);
                 ctx.textBaseline = 'alphabetic';
                 ctx.textAlign = 'left';
                 ctx.shadowBlur = 0;
             } else if (item.type === 'gold') {
                 ctx.shadowColor = '#ebca6b'; ctx.shadowBlur = 20;
                 for (let k = 0; k < 3; k++) {
-                    const coinGrd = ctx.createRadialGradient(item.x + (k-1)*4 - 1, item.y + bobY + (k===1?-3:0) - 1, 1, item.x + (k-1)*4, item.y + bobY + (k===1?-3:0), 7);
-                    coinGrd.addColorStop(0, '#fff8d0');
-                    coinGrd.addColorStop(0.5, k === 0 ? '#ebca6b' : (k === 1 ? '#d4a845' : '#c49835'));
-                    coinGrd.addColorStop(1, '#8a6a20');
-                    ctx.fillStyle = coinGrd;
+                    const cx = item.x + (k-1)*4;
+                    const cy = iy + (k===1?-3:0);
+                    const coinGrd = safeGrad(cx - 1, cy - 1, 1, 7);
+                    if (coinGrd) {
+                        coinGrd.addColorStop(0, '#fff8d0');
+                        coinGrd.addColorStop(0.5, k === 0 ? '#ebca6b' : (k === 1 ? '#d4a845' : '#c49835'));
+                        coinGrd.addColorStop(1, '#8a6a20');
+                        ctx.fillStyle = coinGrd;
+                    }
                     ctx.beginPath();
-                    ctx.ellipse(item.x + (k-1)*4, item.y + bobY + (k===1?-3:0), 6, 4, 0, 0, Math.PI*2);
+                    ctx.ellipse(cx, cy, 6, 4, 0, 0, Math.PI*2);
                     ctx.fill();
                 }
                 ctx.shadowBlur = 0;
@@ -287,21 +306,24 @@ const Game = {
                 flaskGrd.addColorStop(0, '#5a2a2a'); flaskGrd.addColorStop(0.5, '#3a1a1a'); flaskGrd.addColorStop(1, '#1a0a0a');
                 ctx.fillStyle = flaskGrd;
                 ctx.beginPath();
-                ctx.moveTo(item.x - 5, item.y - 8 + bobY);
-                ctx.lineTo(item.x + 5, item.y - 8 + bobY);
-                ctx.lineTo(item.x + 7, item.y + 6 + bobY);
-                ctx.lineTo(item.x - 7, item.y + 6 + bobY);
+                ctx.moveTo(item.x - 5, iy - 8);
+                ctx.lineTo(item.x + 5, iy - 8);
+                ctx.lineTo(item.x + 7, iy + 6);
+                ctx.lineTo(item.x - 7, iy + 6);
                 ctx.closePath(); ctx.fill();
-                const potGrd = ctx.createRadialGradient(item.x - 1, item.y + 1 + bobY, 1, item.x, item.y + 2 + bobY, 8);
-                potGrd.addColorStop(0, '#ffaaaa'); potGrd.addColorStop(0.5, '#e04040'); potGrd.addColorStop(1, '#8a1010');
-                ctx.fillStyle = potGrd;
-                ctx.beginPath(); ctx.ellipse(item.x, item.y + 2 + bobY, 5, 6, 0, 0, Math.PI * 2); ctx.fill();
+                const potGrd = safeGrad(item.x - 1, iy + 1, 1, 8);
+                if (potGrd) {
+                    potGrd.addColorStop(0, '#ffaaaa'); potGrd.addColorStop(0.5, '#e04040'); potGrd.addColorStop(1, '#8a1010');
+                    ctx.fillStyle = potGrd;
+                    ctx.beginPath(); ctx.ellipse(item.x, iy + 2, 5, 6, 0, 0, Math.PI * 2); ctx.fill();
+                }
                 ctx.fillStyle = '#8a6a3a';
-                ctx.fillRect(item.x - 3, item.y - 11 + bobY, 6, 4);
+                ctx.fillRect(item.x - 3, iy - 11, 6, 4);
                 ctx.shadowBlur = 0;
             }
         }
 
+        // 3. Враги
         for (let e of State.enemies) {
             if (!isFinite(e.x) || !isFinite(e.y)) continue;
             Sprites.drawEnemy(ctx, e);
@@ -316,9 +338,12 @@ const Game = {
             }
         }
 
+        // 4. Игрок
         Sprites.drawPlayer(ctx, State.player.x, State.player.y, State.player.facing);
 
+        // 5. Эффекты удара
         for (let ef of State.effects) {
+            if (!isFinite(ef.x) || !isFinite(ef.y)) continue;
             if (ef.type === 'slash') {
                 ctx.save();
                 ctx.translate(ef.x, ef.y);
@@ -340,6 +365,7 @@ const Game = {
             }
         }
 
+        // 6. Частицы
         for (let p of State.particles) {
             if (!isFinite(p.x) || !isFinite(p.y)) continue;
             ctx.globalAlpha = p.life / p.maxLife;
@@ -350,6 +376,7 @@ const Game = {
         }
         ctx.globalAlpha = 1;
 
+        // 7. Всплывающий текст
         ctx.font = 'bold 16px Times New Roman';
         ctx.textAlign = 'center';
         for (let ft of State.floatingTexts) {
@@ -365,6 +392,7 @@ const Game = {
 
         ctx.restore();
 
+        // 8. Индикатор радиуса атаки
         if (State.player.alive && State.player.classData && State.gameRunning) {
             ctx.globalAlpha = 0.06;
             ctx.strokeStyle = State.player.classData.weaponGlow;
@@ -376,6 +404,7 @@ const Game = {
             ctx.shadowBlur = 0; ctx.globalAlpha = 1;
         }
 
+        // 9. Мини-карта
         MapModule.drawMinimap(ctx);
     },
 
