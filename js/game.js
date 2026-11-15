@@ -214,19 +214,25 @@ const Game = {
         const W = CONFIG.W, H = CONFIG.H;
         ctx.clearRect(0, 0, W, H);
 
-        if (!isFinite(State.player.x) || !isFinite(State.player.y)) {
-            State.player.x = CONFIG.W / 2;
-            State.player.y = CONFIG.H / 2;
+        // ГЛАВНАЯ ЗАЩИТА ОТ NaN
+        if (!State.player || !isFinite(State.player.x) || !isFinite(State.player.y)) {
+            if (State.player) {
+                State.player.x = CONFIG.W / 2;
+                State.player.y = CONFIG.H / 2;
+            }
+            return; // Пропускаем кадр, если игрок сломан
         }
 
         const camX = Math.max(0, Math.min(State.MAP_W * CONFIG.TILE - W, State.player.x - W / 2));
         const camY = Math.max(0, Math.min(State.MAP_H * CONFIG.TILE - H, State.player.y - H / 2));
+        
         ctx.save();
         ctx.translate(-camX, -camY);
 
+        // 1. Карта
         MapModule.draw(ctx, State.player);
 
-        // Сундуки
+        // 2. Сундуки
         for (const chest of State.chests) {
             if (chest.opened) continue;
             // ЗАЩИТА ОТ NaN
@@ -239,6 +245,7 @@ const Game = {
             grd.addColorStop(1, 'rgba(255,150,0,0)');
             ctx.fillStyle = grd;
             ctx.beginPath(); ctx.arc(chest.x, chest.y, 40, 0, Math.PI * 2); ctx.fill();
+            
             ctx.fillStyle = '#5a3a1a';
             ctx.fillRect(chest.x - 18, chest.y - 10, 36, 24);
             ctx.fillStyle = '#8a5a2a';
@@ -249,7 +256,7 @@ const Game = {
             ctx.beginPath(); ctx.arc(chest.x - 1, chest.y + 1, 1.5, 0, Math.PI * 2); ctx.fill();
         }
 
-        // Предметы
+        // 3. Предметы
         for (let item of State.items) {
             // ЗАЩИТА ОТ NaN
             if (!isFinite(item.x) || !isFinite(item.y)) continue;
@@ -305,8 +312,9 @@ const Game = {
             }
         }
 
-        // Враги
+        // 4. Враги
         for (let e of State.enemies) {
+            if (!isFinite(e.x) || !isFinite(e.y)) continue;
             Sprites.drawEnemy(ctx, e);
             if (e.isElite) {
                 ctx.font = 'bold 14px Arial';
@@ -319,10 +327,10 @@ const Game = {
             }
         }
 
-        // Игрок
+        // 5. Игрок
         Sprites.drawPlayer(ctx, State.player.x, State.player.y, State.player.facing);
 
-        // Эффекты удара
+        // 6. Эффекты удара
         for (let ef of State.effects) {
             if (ef.type === 'slash') {
                 ctx.save();
@@ -345,8 +353,9 @@ const Game = {
             }
         }
 
-        // Частицы
+        // 7. Частицы
         for (let p of State.particles) {
+            if (!isFinite(p.x) || !isFinite(p.y)) continue;
             ctx.globalAlpha = p.life / p.maxLife;
             ctx.fillStyle = p.color;
             ctx.beginPath();
@@ -355,10 +364,11 @@ const Game = {
         }
         ctx.globalAlpha = 1;
 
-        // Всплывающий текст
+        // 8. Всплывающий текст
         ctx.font = 'bold 16px Times New Roman';
         ctx.textAlign = 'center';
         for (let ft of State.floatingTexts) {
+            if (!isFinite(ft.x) || !isFinite(ft.y)) continue;
             ctx.globalAlpha = ft.life;
             ctx.fillStyle = 'rgba(0,0,0,0.85)';
             ctx.fillText(ft.text, ft.x + 1, ft.y + 1);
@@ -370,7 +380,7 @@ const Game = {
 
         ctx.restore();
 
-        // Радиус атаки
+        // 9. Индикатор радиуса атаки (поверх всего, вне камеры)
         if (State.player.alive && State.player.classData && State.gameRunning) {
             ctx.globalAlpha = 0.06;
             ctx.strokeStyle = State.player.classData.weaponGlow;
@@ -382,6 +392,7 @@ const Game = {
             ctx.shadowBlur = 0; ctx.globalAlpha = 1;
         }
 
+        // 10. Мини-карта
         MapModule.drawMinimap(ctx);
     },
 
