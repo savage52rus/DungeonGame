@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Diablo 2 · Мини-рогалик</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<div style="position: relative;">
+    <div class="game-container" id="gameContainer">
+        <canvas id="gameCanvas" width="900" height="600"></canvas>
+        <div class="room-indicator" id="roomIndicator">Комната</div>
+        <div class="status-bar">
+            <span class="health-bar">❤ <span id="hpDisplay">100 / 100</span></span>
+            <span class="level-info">Ур. <span id="levelDisplay">1</span></span>
+            <span class="dungeon-info">🏰 Подз. <span id="dungeonDisplay">1</span></span>
+            <span class="kills-info">💀 <span id="totalKillsDisplay">0</span></span>
+            <span class="gold">🪙 <span id="goldDisplay">0</span></span>
+        </div>
+        <div class="xp-bar-container"><div class="xp-bar" id="xpBar"></div></div>
+        <div class="controls">
+            <span><kbd>W A S D</kbd> движение</span>
+            <span><kbd>ЛКМ</kbd> / <kbd>Пробел</kbd> атака</span>
+            <span><kbd>E</kbd> лестница</span>
+            <span><kbd>R</kbd> возрождение</span>
+            <span><kbd>Esc</kbd> меню</span>
+        </div>
+        <div id="deathMessage" class="overlay-msg death">
+            ТЫ ПОГИБ
+            <small>Нажми R чтобы возродиться</small>
+        </div>
+        <div id="victoryMessage" class="overlay-msg victory">
+            УРОВЕНЬ ЗАЧИЩЕН!
+            <small>Найди лестницу и нажми E</small>
+        </div>
+    </div>
+    
+    <div class="char-select" id="charSelect">
+        <h1>ВЫБЕРИ ГЕРОЯ</h1>
+        <div class="char-cards">
+            <div class="char-card" data-class="barbarian">
+                <div class="icon">⚔️</div>
+                <div class="name">ВАРВАР</div>
+                <div class="desc">Могучий воин. Много HP, сильный удар, медленный.</div>
+                <div class="stats">
+                    <span>HP <span class="val">140</span></span>
+                    <span>Урон <span class="val">30</span></span>
+                    <span>Скорость <span class="val">3.0</span></span>
+                    <span>Радиус <span class="val">85</span></span>
+                </div>
+            </div>
+            <div class="char-card" data-class="amazon">
+                <div class="icon">🏹</div>
+                <div class="name">АМАЗОНКА</div>
+                <div class="desc">Ловкая охотница. Быстрая, дальний радиус, хрупкая.</div>
+                <div class="stats">
+                    <span>HP <span class="val">90</span></span>
+                    <span>Урон <span class="val">20</span></span>
+                    <span>Скорость <span class="val">4.2</span></span>
+                    <span>Радиус <span class="val">110</span></span>
+                </div>
+            </div>
+            <div class="char-card" data-class="sorceress">
+                <div class="icon">🔮</div>
+                <div class="name">ВОЛШЕБНИЦА</div>
+                <div class="desc">Мастер стихий. Огромный урон по площади, мало HP.</div>
+                <div class="stats">
+                    <span>HP <span class="val">80</span></span>
+                    <span>Урон <span class="val">45</span></span>
+                    <span>Скорость <span class="val">3.2</span></span>
+                    <span>Радиус <span class="val">100</span></span>
+                </div>
+            </div>
+            <div class="char-card" data-class="paladin">
+                <div class="icon">🛡️</div>
+                <div class="name">ПАЛАДИН</div>
+                <div class="desc">Святой воин. Баланс HP и урона, аура исцеления.</div>
+                <div class="stats">
+                    <span>HP <span class="val">120</span></span>
+                    <span>Урон <span class="val">26</span></span>
+                    <span>Скорость <span class="val">3.4</span></span>
+                    <span>Радиус <span class="val">90</span></span>
+                </div>
+            </div>
+            <div class="char-card" data-class="necromancer">
+                <div class="icon">💀</div>
+                <div class="name">НЕКРОМАНТ</div>
+                <div class="desc">Повелитель мёртвых. Ядовитый урон по площади, средний HP.</div>
+                <div class="stats">
+                    <span>HP <span class="val">100</span></span>
+                    <span>Урон <span class="val">22</span></span>
+                    <span>Скорость <span class="val">3.6</span></span>
+                    <span>Радиус <span class="val">120</span></span>
+                </div>
+            </div>
+        </div>
+        <div class="start-hint">Кликни по карточке, чтобы начать</div>
+    </div>
+
+    <div class="upgrade-overlay" id="upgradeOverlay">
+        <div class="upgrade-title">УРОВЕНЬ ПОВЫШЕН</div>
+        <div class="upgrade-subtitle">Выбери улучшение</div>
+        <div class="upgrade-cards" id="upgradeCards"></div>
+    </div>
+</div>
+
+<!-- Подключаем модули по порядку (без ES-модулей, чтобы работало через file://) -->
+<script src="js/config.js"></script>
+<script src="js/sprites.js"></script>
+<script src="js/map.js"></script>
+<script src="js/player.js"></script>
+<script src="js/enemies.js"></script>
+<script src="js/ui.js"></script>
+<script src="js/game.js"></script>
+</body>
+</html>
