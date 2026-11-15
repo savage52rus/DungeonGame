@@ -89,20 +89,26 @@ const TouchControls = {
         return null;
     },
 
-    updateJoystick(x, y) {
-        const dx = x - this.joystickOrigin.x;
-        const dy = y - this.joystickOrigin.y;
-        const dist = Math.sqrt(dx * dx + dy * dy);
-        const maxDist = this.joystickMaxDistance;
-        
-        let normX, normY;
-        if (dist > maxDist) {
-            normX = (dx / dist) * maxDist;
-            normY = (dy / dist) * maxDist;
-        } else {
-            normX = dx;
-            normY = dy;
-        }
+updateJoystick(x, y) {
+    const dx = x - this.joystickOrigin.x;
+    const dy = y - this.joystickOrigin.y;
+    const dist = Math.sqrt(dx * dx + dy * dy);
+    const maxDist = this.joystickMaxDistance;
+    
+    let normX = 0, normY = 0;
+    if (dist > 0 && dist !== Infinity) { // <-- ДОБАВИТЬ ПРОВЕРКУ
+        normX = (dx / dist) * Math.min(dist, maxDist);
+        normY = (dy / dist) * Math.min(dist, maxDist);
+    }
+    // ... дальше без изменений
+    if (dist > 10) {
+        this.moveVector.x = (dx / dist) * Math.min(1, dist / maxDist);
+        this.moveVector.y = (dy / dist) * Math.min(1, dist / maxDist);
+    } else {
+        this.moveVector.x = 0;
+        this.moveVector.y = 0;
+    }
+}
         
         // Визуал
         const knob = document.getElementById('joystickKnob');
