@@ -1,5 +1,5 @@
 // ========== UI, ИНВЕНТАРЬ, УЛУЧШЕНИЯ ==========
-// Требует: CONFIG, State, SKILLS, RARITIES, Items, TouchControls
+// Требует: CONFIG, State, SKILLS, RARITIES, Items, Audio, Game
 
 const UI = {
     update() {
@@ -14,7 +14,6 @@ const UI = {
         document.getElementById('bestDisplay').textContent = State.bestDungeon || 0;
         document.getElementById('xpBar').style.width = Math.min(100, (State.xp / State.xpToNext) * 100) + '%';
 
-        // Панель умений
         const skill = SKILLS[State.currentClass];
         if (skill) {
             const slot = document.getElementById('skillSlot0');
@@ -25,10 +24,6 @@ const UI = {
             }
         }
 
-        // Обновление счётчика зелий на мобильной кнопке
-        if (typeof TouchControls !== 'undefined') TouchControls.updatePotionCount();
-
-        // Перерисовка инвентаря, если открыт
         const panel = document.getElementById('inventoryPanel');
         if (panel && panel.classList.contains('open')) this.renderInventory();
     },
@@ -97,13 +92,11 @@ const UI = {
         } else el.classList.remove('boss');
     },
 
-    // ========== ИНВЕНТАРЬ ==========
     renderInventory() {
         const panel = document.getElementById('inventoryPanel');
         if (!panel) return;
         const p = State.player;
 
-        // Инициализируем сетку один раз
         let grid = document.getElementById('invGrid');
         if (!grid) {
             grid = document.createElement('div');
@@ -113,7 +106,6 @@ const UI = {
         }
         grid.innerHTML = '';
 
-        // Слоты экипировки
         const eqSlots = [
             { key: 'weapon', icon: '🗡️', label: 'Оружие' },
             { key: 'armor', icon: '🥋', label: 'Броня' },
@@ -135,7 +127,6 @@ const UI = {
             grid.appendChild(cell);
         }
 
-        // Предметы в инвентаре (13 слотов)
         for (let i = 0; i < 13; i++) {
             const item = p.inventory[i];
             const cell = document.createElement('div');
@@ -158,7 +149,6 @@ const UI = {
             grid.appendChild(cell);
         }
 
-        // Статы
         let statsEl = document.getElementById('invStats');
         if (!statsEl) {
             statsEl = document.createElement('div');
@@ -190,7 +180,6 @@ const UI = {
             ${item.stats.map(s => `<div class="tooltip-stat">+${s.value} ${s.name}</div>`).join('')}
             <div class="tooltip-hint">Клик — ${item.type === 'potion' ? 'использовать' : 'экипировать'}</div>
         `;
-        // Позиционирование с учётом размера экрана
         const tw = 240;
         let left = e.clientX + 15;
         let top = e.clientY + 15;
