@@ -37,8 +37,6 @@ const Game = {
         UI.updateRoomIndicator();
         UI.update();
 
-        if (typeof TouchControls !== 'undefined') TouchControls.updatePotionCount();
-
         State.gameRunning = true;
         if (State.animFrameId) cancelAnimationFrame(State.animFrameId);
         State.lastTime = 0;
@@ -89,7 +87,6 @@ const Game = {
         State.floatingTexts.push({ x: p.x, y: p.y - 40, text: '+40 HP', color: '#8fc', life: 1.0, vy: -2 });
         Audio.pickup();
         UI.update();
-        if (typeof TouchControls !== 'undefined') TouchControls.updatePotionCount();
     },
 
     flashDamage() {
@@ -157,13 +154,6 @@ const Game = {
             }
         });
 
-        // Тап на канвасе = атака (для мобильных без кнопок)
-        this.canvas.addEventListener('touchstart', (e) => {
-            if (e.touches.length > 1) return; // мультитач оставляем джойстику
-            e.preventDefault();
-            if (State.player.alive && State.gameRunning && !State.pausedForUpgrade) Player.attack();
-        }, { passive: false });
-
         this.canvas.addEventListener('contextmenu', (e) => e.preventDefault());
         window.addEventListener('keydown', (e) => { if (e.key.startsWith('Arrow')) e.preventDefault(); });
     },
@@ -198,9 +188,16 @@ const Game = {
     gameLoop(now) {
         if (!State.gameRunning) return;
         if (!State.lastTime) State.lastTime = now;
-        const dt = Math.min(50, now - State.lastTime);
+        let dt = now - State.lastTime;
+        if (!isFinite(dt) || dt <= 0) dt = 16.67;
+        dt = Math.min(50, dt);
         State.lastTime = now;
         State.globalTime = now;
+
+        // Защита от NaN в координатах игрока
+        if (!isFinite(State.player.x)) State.player.x = CONFIG.W / 2;
+        if (!isFinite(State.player.y)) State.player.y = CONFIG.H / 2;
+        if (!isFinite(State.player.hp)) State.player.hp = State.player.maxHp;
 
         Player.update(dt);
         if (typeof Skills !== 'undefined') Skills.update(dt);
@@ -213,19 +210,17 @@ const Game = {
     },
 
     draw() {
-    const ctx = this.ctx;
-    const W = CONFIG.W, H = CONFIG.H;
-    ctx.clearRect(0, 0, W, H);
+        const ctx = this.ctx;
+        const W = CONFIG.W, H = CONFIG.H;
+        ctx.clearRect(0, 0, W, H);
 
-    // ЗАЩИТА ОТ NaN
-    if (!isFinite(State.player.x) || !isFinite(State.player.y)) {
-        console.warn("Координаты игрока сломаны, сброс на центр");
-        State.player.x = CONFIG.W / 2;
-        State.player.y = CONFIG.H / 2;
-    }
+        if (!isFinite(State.player.x) || !isFinite(State.player.y)) {
+            State.player.x = CONFIG.W / 2;
+            State.player.y = CONFIG.H / 2;
+        }
 
-    const camX = Math.max(0, Math.min(State.MAP_W * CONFIG.TILE - W, State.player.x - W / 2));
-    const camY = Math.max(0, Math.min(State.MAP_H * CONFIG.TILE - H, State.player.y - H / 2));
+        const camX = Math.max(0, Math.min(State.MAP_W * CONFIG.TILE - W, State.player.x - W / 2));
+        const camY = Math.max(0, Math.min(State.MAP_H * CONFIG.TILE - H, State.player.y - H / 2));
         ctx.save();
         ctx.translate(-camX, -camY);
 
@@ -255,7 +250,6 @@ const Game = {
         for (let item of State.items) {
             const bobY = Math.sin(item.bob) * 4;
             if (item.pickupType === 'item') {
-                // Экипировка — по редкости
                 const rarity = RARITIES[item.rarity];
                 ctx.shadowColor = rarity.color;
                 ctx.shadowBlur = 15;
@@ -308,7 +302,6 @@ const Game = {
         // Враги
         for (let e of State.enemies) {
             Sprites.drawEnemy(ctx, e);
-            // Корона элиты
             if (e.isElite) {
                 ctx.font = 'bold 14px Arial';
                 ctx.textAlign = 'center';
