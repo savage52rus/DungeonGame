@@ -2,8 +2,7 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <meta name="theme-color" content="#0a0705">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Diablo 2 · Мини-рогалик</title>
     <link rel="stylesheet" href="css/style.css">
 </head>
@@ -31,7 +30,7 @@
             <div class="xp-bar" id="xpBar"></div>
         </div>
 
-        <!-- Подсказки клавиатуры (скрываются на мобильных) -->
+        <!-- Подсказки клавиатуры -->
         <div class="controls">
             <span><kbd>W A S D</kbd> движение</span>
             <span><kbd>ЛКМ</kbd> / <kbd>Пробел</kbd> атака</span>
@@ -68,21 +67,7 @@
             <div class="inv-stats" id="invStats"></div>
         </div>
 
-        <!-- Мобильное управление -->
-        <div class="touch-controls" id="touchControls">
-            <div class="joystick-zone" id="joystickZone">
-                <div class="joystick-base"></div>
-                <div class="joystick-knob" id="joystickKnob"></div>
-            </div>
-            <div class="action-buttons">
-                <div class="action-btn btn-attack" id="btnAttack">⚔️<span class="btn-label">АТАКА</span></div>
-                <div class="action-btn btn-skill" id="btnSkill">✨<span class="btn-label">УМЕНИЕ</span></div>
-                <div class="action-btn btn-potion" id="btnPotion">🧪<span class="btn-label">×0</span></div>
-                <div class="action-btn btn-inventory" id="btnInventory">🎒</div>
-            </div>
-        </div>
-
-        <!-- Вспышка урона (создаётся динамически, но можно и в разметке) -->
+        <!-- Вспышка урона -->
         <div class="damage-flash" id="damageFlash"></div>
     </div>
 
@@ -93,7 +78,7 @@
             <div class="char-card" data-class="barbarian">
                 <div class="icon">⚔️</div>
                 <div class="name">ВАРВАР</div>
-                <div class="desc">Могучий воин. Много HP, сильный удар. Умение: <b>Рывок</b> — быстрый бросок вперёд.</div>
+                <div class="desc">Могучий воин. Много HP, сильный удар. Умение: <b>Рывок</b>.</div>
                 <div class="stats">
                     <span>HP <span class="val">140</span></span>
                     <span>Урон <span class="val">30</span></span>
@@ -104,7 +89,7 @@
             <div class="char-card" data-class="amazon">
                 <div class="icon">🏹</div>
                 <div class="name">АМАЗОНКА</div>
-                <div class="desc">Ловкая охотница. Быстрая, дальний радиус. Умение: <b>Залп</b> — стрелы по площади.</div>
+                <div class="desc">Ловкая охотница. Быстрая, дальний радиус. Умение: <b>Залп</b>.</div>
                 <div class="stats">
                     <span>HP <span class="val">90</span></span>
                     <span>Урон <span class="val">20</span></span>
@@ -115,7 +100,7 @@
             <div class="char-card" data-class="sorceress">
                 <div class="icon">🔮</div>
                 <div class="name">ВОЛШЕБНИЦА</div>
-                <div class="desc">Мастер стихий. Огромный урон. Умение: <b>Огненный шар</b> — взрыв по площади.</div>
+                <div class="desc">Мастер стихий. Огромный урон. Умение: <b>Огненный шар</b>.</div>
                 <div class="stats">
                     <span>HP <span class="val">80</span></span>
                     <span>Урон <span class="val">45</span></span>
@@ -126,7 +111,7 @@
             <div class="char-card" data-class="paladin">
                 <div class="icon">🛡️</div>
                 <div class="name">ПАЛАДИН</div>
-                <div class="desc">Святой воин. Аура регенерации. Умение: <b>Исцеление</b> — восстанавливает HP.</div>
+                <div class="desc">Святой воин. Аура регенерации. Умение: <b>Исцеление</b>.</div>
                 <div class="stats">
                     <span>HP <span class="val">120</span></span>
                     <span>Урон <span class="val">26</span></span>
@@ -137,7 +122,7 @@
             <div class="char-card" data-class="necromancer">
                 <div class="icon">💀</div>
                 <div class="name">НЕКРОМАНТ</div>
-                <div class="desc">Повелитель мёртвых. Умение: <b>Ядовитое облако</b> — урон по площади.</div>
+                <div class="desc">Повелитель мёртвых. Умение: <b>Ядовитое облако</b>.</div>
                 <div class="stats">
                     <span>HP <span class="val">100</span></span>
                     <span>Урон <span class="val">22</span></span>
@@ -149,7 +134,7 @@
         <div class="start-hint">Кликни по карточке, чтобы начать</div>
     </div>
 
-    <!-- Окно улучшений при повышении уровня -->
+    <!-- Окно улучшений -->
     <div class="upgrade-overlay" id="upgradeOverlay">
         <div class="upgrade-title">УРОВЕНЬ ПОВЫШЕН</div>
         <div class="upgrade-subtitle">Выбери улучшение</div>
@@ -157,7 +142,7 @@
     </div>
 </div>
 
-<!-- Модули (порядок важен!) -->
+<!-- Модули -->
 <script src="js/config.js"></script>
 <script src="js/audio.js"></script>
 <script src="js/sprites.js"></script>
@@ -168,6 +153,5 @@
 <script src="js/enemies.js"></script>
 <script src="js/ui.js"></script>
 <script src="js/game.js"></script>
-<script src="js/touch.js"></script>
 </body>
 </html>
