@@ -115,3 +115,159 @@ kbd {
 .room-indicator.visible { display: block; }
 .room-indicator.boss { color: #f88; border-color: #a33; animation: pulse 1s infinite; }
 @keyframes pulse { 0%,100% { box-shadow: 0 0 5px #a33; } 50% { box-shadow: 0 0 20px #f44; } }
+/* === Новые стили === */
+.mana-bar { color: #48c; }
+.best-info { color: #fc6; }
+
+.skill-bar {
+    position: absolute;
+    bottom: 15px;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    gap: 8px;
+    z-index: 5;
+}
+.skill-slot {
+    position: relative;
+    width: 56px;
+    height: 56px;
+    background: rgba(20,15,10,0.85);
+    border: 2px solid #5a3e1e;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 0 10px #000, inset 0 0 8px rgba(0,0,0,0.6);
+}
+.skill-slot.active { border-color: #ebca6b; box-shadow: 0 0 15px #ebca6b; }
+.skill-slot .skill-icon { font-size: 28px; filter: drop-shadow(0 0 6px #a86); }
+.skill-slot .skill-key {
+    position: absolute;
+    bottom: 2px;
+    right: 4px;
+    font-size: 10px;
+    color: #c9ad8a;
+    background: rgba(0,0,0,0.7);
+    padding: 1px 4px;
+    border-radius: 3px;
+}
+.skill-cooldown {
+    position: absolute;
+    bottom: 0; left: 0;
+    width: 100%;
+    height: 0%;
+    background: rgba(0,0,0,0.75);
+    pointer-events: none;
+    border-radius: 0 0 6px 6px;
+    transition: height 0.1s linear;
+}
+
+.inventory-panel {
+    position: absolute;
+    top: 50%;
+    right: 20px;
+    transform: translateY(-50%);
+    width: 260px;
+    background: rgba(20,15,10,0.95);
+    border: 2px solid #5a3e1e;
+    border-radius: 12px;
+    padding: 12px;
+    box-shadow: 0 0 25px #000, inset 0 0 15px rgba(0,0,0,0.6);
+    z-index: 8;
+    display: none;
+    color: #c9ad8a;
+    font-size: 13px;
+}
+.inventory-panel.open { display: block; }
+.inv-title {
+    color: #ebca6b;
+    font-size: 16px;
+    font-weight: bold;
+    letter-spacing: 3px;
+    text-align: center;
+    margin-bottom: 10px;
+    text-shadow: 2px 2px 0 #2a1a0a;
+}
+.inv-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 4px;
+    margin-bottom: 12px;
+}
+.inv-cell {
+    aspect-ratio: 1;
+    background: rgba(0,0,0,0.5);
+    border: 1px solid #3a2a1a;
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 20px;
+    cursor: pointer;
+    position: relative;
+    transition: all 0.15s;
+}
+.inv-cell:hover { border-color: #c9a05a; box-shadow: 0 0 8px #c9a05a; }
+.inv-cell.equipped { border-color: #8fc; box-shadow: 0 0 8px #8fc inset; }
+.inv-cell .rarity-common { color: #c9ad8a; }
+.inv-cell .rarity-magic { color: #6af; text-shadow: 0 0 5px #6af; }
+.inv-cell .rarity-rare { color: #fc6; text-shadow: 0 0 5px #fc6; }
+.inv-cell .rarity-legendary { color: #f80; text-shadow: 0 0 8px #f80; }
+.inv-stats {
+    border-top: 1px solid #3a2a1a;
+    padding-top: 8px;
+    font-size: 12px;
+    line-height: 1.5;
+}
+.inv-stats .stat-row { display: flex; justify-content: space-between; }
+.inv-stats .stat-val { color: #8fc; }
+
+/* Tooltip */
+.item-tooltip {
+    position: fixed;
+    background: rgba(10,7,5,0.96);
+    border: 2px solid #6b4e2e;
+    border-radius: 8px;
+    padding: 10px 14px;
+    color: #c9ad8a;
+    font-size: 12px;
+    pointer-events: none;
+    z-index: 100;
+    max-width: 240px;
+    box-shadow: 0 0 20px #000;
+    line-height: 1.5;
+    display: none;
+}
+.item-tooltip.visible { display: block; }
+.item-tooltip .tooltip-name { font-weight: bold; margin-bottom: 4px; font-size: 14px; }
+.item-tooltip .tooltip-name.common { color: #c9ad8a; }
+.item-tooltip .tooltip-name.magic { color: #6af; text-shadow: 0 0 6px #6af; }
+.item-tooltip .tooltip-name.rare { color: #fc6; text-shadow: 0 0 6px #fc6; }
+.item-tooltip .tooltip-name.legendary { color: #f80; text-shadow: 0 0 8px #f80; }
+.item-tooltip .tooltip-stat { color: #8fc; }
+.item-tooltip .tooltip-hint { color: #6b4e2e; font-style: italic; margin-top: 6px; }
+
+/* Вспышка урона */
+.damage-flash {
+    position: absolute;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    background: radial-gradient(circle, transparent 40%, rgba(200,20,20,0.5) 100%);
+    pointer-events: none;
+    opacity: 0;
+    z-index: 4;
+    transition: opacity 0.15s;
+    border-radius: 8px;
+}
+.damage-flash.flash { opacity: 1; }
+
+/* Сундук и элита */
+.elite-crown {
+    position: absolute;
+    font-size: 12px;
+    color: #fc6;
+    text-shadow: 0 0 6px #fc6;
+    pointer-events: none;
+}
+
