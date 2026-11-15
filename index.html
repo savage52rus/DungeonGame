@@ -13,18 +13,22 @@
         <div class="room-indicator" id="roomIndicator">Комната</div>
         <div class="status-bar">
             <span class="health-bar">❤ <span id="hpDisplay">100 / 100</span></span>
+            <span class="mana-bar">💧 <span id="manaDisplay">50 / 50</span></span>
             <span class="level-info">Ур. <span id="levelDisplay">1</span></span>
             <span class="dungeon-info">🏰 Подз. <span id="dungeonDisplay">1</span></span>
             <span class="kills-info">💀 <span id="totalKillsDisplay">0</span></span>
             <span class="gold">🪙 <span id="goldDisplay">0</span></span>
+            <span class="best-info">🏆 <span id="bestDisplay">0</span></span>
         </div>
         <div class="xp-bar-container"><div class="xp-bar" id="xpBar"></div></div>
         <div class="controls">
             <span><kbd>W A S D</kbd> движение</span>
             <span><kbd>ЛКМ</kbd> / <kbd>Пробел</kbd> атака</span>
+            <span><kbd>ПКМ</kbd> / <kbd>Shift</kbd> умение</span>
+            <span><kbd>Q</kbd> зелье</span>
             <span><kbd>E</kbd> лестница</span>
+            <span><kbd>I</kbd> инвентарь</span>
             <span><kbd>R</kbd> возрождение</span>
-            <span><kbd>Esc</kbd> меню</span>
         </div>
         <div id="deathMessage" class="overlay-msg death">
             ТЫ ПОГИБ
@@ -34,6 +38,22 @@
             УРОВЕНЬ ЗАЧИЩЕН!
             <small>Найди лестницу и нажми E</small>
         </div>
+
+        <!-- Панель умений -->
+        <div class="skill-bar" id="skillBar">
+            <div class="skill-slot" id="skillSlot0" data-key="Shift">
+                <div class="skill-icon">✨</div>
+                <div class="skill-cooldown" id="skillCd0"></div>
+                <div class="skill-key">Shift</div>
+            </div>
+        </div>
+
+        <!-- Инвентарь (скрыт по умолчанию) -->
+        <div class="inventory-panel" id="inventoryPanel">
+            <div class="inv-title">ИНВЕНТАРЬ</div>
+            <div class="inv-grid" id="invGrid"></div>
+            <div class="inv-stats" id="invStats"></div>
+        </div>
     </div>
     
     <div class="char-select" id="charSelect">
@@ -42,7 +62,7 @@
             <div class="char-card" data-class="barbarian">
                 <div class="icon">⚔️</div>
                 <div class="name">ВАРВАР</div>
-                <div class="desc">Могучий воин. Много HP, сильный удар, медленный.</div>
+                <div class="desc">Могучий воин. Много HP, сильный удар. Умение: <b>Рывок</b> — быстрый бросок вперёд.</div>
                 <div class="stats">
                     <span>HP <span class="val">140</span></span>
                     <span>Урон <span class="val">30</span></span>
@@ -53,7 +73,7 @@
             <div class="char-card" data-class="amazon">
                 <div class="icon">🏹</div>
                 <div class="name">АМАЗОНКА</div>
-                <div class="desc">Ловкая охотница. Быстрая, дальний радиус, хрупкая.</div>
+                <div class="desc">Ловкая охотница. Быстрая, дальний радиус. Умение: <b>Залп</b> — стрелы по площади.</div>
                 <div class="stats">
                     <span>HP <span class="val">90</span></span>
                     <span>Урон <span class="val">20</span></span>
@@ -64,7 +84,7 @@
             <div class="char-card" data-class="sorceress">
                 <div class="icon">🔮</div>
                 <div class="name">ВОЛШЕБНИЦА</div>
-                <div class="desc">Мастер стихий. Огромный урон по площади, мало HP.</div>
+                <div class="desc">Мастер стихий. Огромный урон. Умение: <b>Огненный шар</b> — взрыв по площади.</div>
                 <div class="stats">
                     <span>HP <span class="val">80</span></span>
                     <span>Урон <span class="val">45</span></span>
@@ -75,7 +95,7 @@
             <div class="char-card" data-class="paladin">
                 <div class="icon">🛡️</div>
                 <div class="name">ПАЛАДИН</div>
-                <div class="desc">Святой воин. Баланс HP и урона, аура исцеления.</div>
+                <div class="desc">Святой воин. Аура регенерации. Умение: <b>Исцеление</b> — восстанавливает HP.</div>
                 <div class="stats">
                     <span>HP <span class="val">120</span></span>
                     <span>Урон <span class="val">26</span></span>
@@ -86,7 +106,7 @@
             <div class="char-card" data-class="necromancer">
                 <div class="icon">💀</div>
                 <div class="name">НЕКРОМАНТ</div>
-                <div class="desc">Повелитель мёртвых. Ядовитый урон по площади, средний HP.</div>
+                <div class="desc">Повелитель мёртвых. Умение: <b>Ядовитое облако</b> — урон по площади.</div>
                 <div class="stats">
                     <span>HP <span class="val">100</span></span>
                     <span>Урон <span class="val">22</span></span>
@@ -105,9 +125,11 @@
     </div>
 </div>
 
-<!-- Подключаем модули по порядку (без ES-модулей, чтобы работало через file://) -->
 <script src="js/config.js"></script>
+<script src="js/audio.js"></script>
 <script src="js/sprites.js"></script>
+<script src="js/items.js"></script>
+<script src="js/skills.js"></script>
 <script src="js/map.js"></script>
 <script src="js/player.js"></script>
 <script src="js/enemies.js"></script>
