@@ -1,5 +1,5 @@
 // ========== ИГРОК ==========
-// Требует: CONFIG, State, CLASSES, TILE_*, MapModule, Audio, UI, Items, TouchControls
+// Требует: CONFIG, State, CLASSES, TILE_*, MapModule, Audio, UI, Items
 
 const Player = {
     create(className) {
@@ -28,25 +28,16 @@ const Player = {
         const speed = this.getEffectiveSpeed();
         const keys = State.keys;
 
-        // === Ввод: клавиатура + джойстик ===
         let mx = 0, my = 0;
         if (keys.w) my -= 1;
         if (keys.s) my += 1;
         if (keys.a) mx -= 1;
         if (keys.d) mx += 1;
 
-        if (typeof TouchControls !== 'undefined') {
-            const tv = TouchControls.getMoveVector();
-            if (tv.x !== 0 || tv.y !== 0) {
-                mx = tv.x;
-                my = tv.y;
-            }
-        }
-
         const mag = Math.sqrt(mx*mx + my*my);
         p.moving = mag > 0.1;
 
-        if (p.moving) {
+        if (p.moving && isFinite(mag)) {
             if (mag > 1) { mx /= mag; my /= mag; }
             mx *= speed * dt * 0.06;
             my *= speed * dt * 0.06;
@@ -188,7 +179,6 @@ const Player = {
             const dx = item.x - p.x, dy = item.y - p.y;
             if (Math.sqrt(dx*dx + dy*dy) < CONFIG.PLAYER_RADIUS + item.radius + 10) {
                 if (item.pickupType === 'item') {
-                    // Это экипировка
                     if (Items.addToInventory(item)) {
                         State.floatingTexts.push({ x: item.x, y: item.y, text: item.name, color: RARITIES[item.rarity].color, life: 1.5, vy: -1.5 });
                     }
@@ -200,10 +190,6 @@ const Player = {
                     p.potions++;
                     State.floatingTexts.push({ x: item.x, y: item.y, text: '+1 зелье', color: '#f66', life: 1.0, vy: -1.5 });
                     Audio.pickup();
-                } else if (item.type === 'item') {
-                    if (Items.addToInventory(item)) {
-                        State.floatingTexts.push({ x: item.x, y: item.y, text: item.name, color: RARITIES[item.rarity].color, life: 1.5, vy: -1.5 });
-                    }
                 }
                 State.items.splice(i, 1);
             }
