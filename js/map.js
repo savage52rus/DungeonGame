@@ -185,6 +185,9 @@ const MapModule = {
     draw(ctx, player) {
         const W = CONFIG.W, H = CONFIG.H, T = CONFIG.TILE;
         
+        // Защита от NaN на случай сбоя инициализации
+        if (!isFinite(player.x) || !isFinite(player.y)) return;
+
         // Определяем текущую комнату для освещения
         let activeRoom = null;
         for (const room of State.rooms) {
@@ -266,7 +269,7 @@ const MapModule = {
 
         if (State.ladderPos && State.allRoomsCleared) this.drawLadder(ctx, State.ladderPos.x, State.ladderPos.y);
         
-        // Глобальная тьма (Виньетка)
+        // ГЛОБАЛЬНАЯ ВИНЬЕТКА (тьма по краям экрана) + ЗАЩИТА ОТ NaN
         const vg = ctx.createRadialGradient(player.x, player.y, 150, player.x, player.y, 600);
         vg.addColorStop(0, 'rgba(0,0,0,0)');
         vg.addColorStop(1, 'rgba(0,0,0,0.85)');
@@ -324,7 +327,6 @@ const MapModule = {
         const mmX = W - mmW - 10, mmY = 10;
         const scaleX = mmW / (State.MAP_W * T), scaleY = mmH / (State.MAP_H * T);
         
-        // Рамка карты (как в Diablo)
         ctx.fillStyle = 'rgba(10,7,5,0.9)';
         ctx.fillRect(mmX - 4, mmY - 4, mmW + 8, mmH + 8);
         ctx.strokeStyle = '#5a3e1e';
@@ -350,7 +352,6 @@ const MapModule = {
             }
         }
         
-        // Галочки зачищенных комнат
         ctx.strokeStyle = '#8fc';
         ctx.lineWidth = 2;
         for (const room of State.rooms) {
@@ -363,7 +364,6 @@ const MapModule = {
             }
         }
         
-        // Лестница
         if (State.ladderPos && State.allRoomsCleared) {
             ctx.fillStyle = '#ebca6b';
             ctx.shadowColor = '#ebca6b'; ctx.shadowBlur = 8;
@@ -373,7 +373,6 @@ const MapModule = {
             ctx.shadowBlur = 0;
         }
         
-        // Враги
         for (const e of State.enemies) {
             ctx.fillStyle = e.isBoss ? '#f44' : (e.isElite ? '#fc6' : '#c44');
             ctx.beginPath();
@@ -381,14 +380,12 @@ const MapModule = {
             ctx.fill();
         }
         
-        // Сундуки
         for (const chest of State.chests) {
             if (chest.opened) continue;
             ctx.fillStyle = '#fc6';
             ctx.fillRect(mmX + chest.x * scaleX - 1, mmY + chest.y * scaleY - 1, 3, 3);
         }
         
-        // Игрок
         ctx.fillStyle = '#8fc';
         ctx.shadowColor = '#8fc'; ctx.shadowBlur = 5;
         ctx.beginPath();
