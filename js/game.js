@@ -229,6 +229,9 @@ const Game = {
         // Сундуки
         for (const chest of State.chests) {
             if (chest.opened) continue;
+            // ЗАЩИТА ОТ NaN
+            if (!isFinite(chest.x) || !isFinite(chest.y)) continue;
+
             const t = State.globalTime * 0.003;
             const glow = Math.sin(t) * 0.3 + 0.5;
             const grd = ctx.createRadialGradient(chest.x, chest.y, 5, chest.x, chest.y, 40);
@@ -248,6 +251,9 @@ const Game = {
 
         // Предметы
         for (let item of State.items) {
+            // ЗАЩИТА ОТ NaN
+            if (!isFinite(item.x) || !isFinite(item.y)) continue;
+
             const bobY = Math.sin(item.bob) * 4;
             if (item.pickupType === 'item') {
                 const rarity = RARITIES[item.rarity];
