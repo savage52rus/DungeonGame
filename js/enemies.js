@@ -51,17 +51,27 @@ const Enemies = {
     },
 
     spawnChest(room) {
+        // ЗАЩИТА: если комната битая, выходим
+        if (!room || !room.center || !isFinite(room.center.x) || !isFinite(room.center.y)) return;
+
         let cx, cy, attempts = 0;
         do {
             cx = room.center.x + (Math.random() - 0.5) * (room.maxX - room.minX - 2) * CONFIG.TILE;
             cy = room.center.y + (Math.random() - 0.5) * (room.maxY - room.minY - 2) * CONFIG.TILE;
             attempts++;
         } while (MapModule.circleHitsWall(cx, cy, 20) && attempts < 30);
+        
         if (attempts >= 30) return;
-        State.chests.push({ x: cx, y: cy, opened: false, roomId: room.id });
+        // ЗАЩИТА: не пушим NaN в массив
+        if (isFinite(cx) && isFinite(cy)) {
+            State.chests.push({ x: cx, y: cy, opened: false, roomId: room.id });
+        }
     },
 
     spawnEnemyAt(x, y, forceType = null) {
+        // ЗАЩИТА: если координаты битые, выходим
+        if (!isFinite(x) || !isFinite(y)) return;
+
         let typeDef;
         if (forceType) typeDef = ENEMY_TYPES.find(t => t.id === forceType);
         else {
@@ -94,6 +104,7 @@ const Enemies = {
     },
 
     spawnBoss(room) {
+        if (!room || !room.center) return;
         const bossDef = BOSS_TYPES[Math.floor(Math.random() * BOSS_TYPES.length)];
         const diffMult = 1 + (State.dungeonLevel - 1) * 0.5;
         const hp = Math.floor((200 + State.dungeonLevel * 80) * bossDef.hpMult / 3 * diffMult);
@@ -152,7 +163,6 @@ const Enemies = {
                 if (!State.player.invincible && State.player.alive) {
                     const baseDmg = e.isBoss ? 25 + State.dungeonLevel * 3 : (CONFIG.ENEMY_ATTACK_DAMAGE + Math.floor(State.dungeonLevel * 1.5));
                     const dmg = Math.floor(baseDmg * (e.typeDef ? e.typeDef.dmgMult : 1));
-                    // Учитываем броню (поглощает до 50%)
                     const armor = State.player.armorBonus || 0;
                     const absorbed = Math.min(dmg * 0.5, armor);
                     const finalDmg = Math.max(1, Math.floor(dmg - absorbed));
