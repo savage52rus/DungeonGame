@@ -185,10 +185,9 @@ const MapModule = {
     draw(ctx, player) {
         const W = CONFIG.W, H = CONFIG.H, T = CONFIG.TILE;
         
-        // Защита от NaN на случай сбоя инициализации
+        // АБСОЛЮТНАЯ ЗАЩИТА: если координаты игрока не числа, мы не рисуем карту
         if (!isFinite(player.x) || !isFinite(player.y)) return;
 
-        // Определяем текущую комнату для освещения
         let activeRoom = null;
         for (const room of State.rooms) {
             if (player.x > room.minX * T && player.x < room.maxX * T && 
@@ -269,22 +268,24 @@ const MapModule = {
 
         if (State.ladderPos && State.allRoomsCleared) this.drawLadder(ctx, State.ladderPos.x, State.ladderPos.y);
         
-        // ГЛОБАЛЬНАЯ ВИНЬЕТКА (тьма по краям экрана) + ЗАЩИТА ОТ NaN
-        const vg = ctx.createRadialGradient(player.x, player.y, 150, player.x, player.y, 600);
-        vg.addColorStop(0, 'rgba(0,0,0,0)');
-        vg.addColorStop(1, 'rgba(0,0,0,0.85)');
-        ctx.fillStyle = vg;
-        ctx.fillRect(0, 0, W, H);
-        
-        // Свет от игрока
-        const lightGrd = ctx.createRadialGradient(player.x, player.y, 30, player.x, player.y, 250);
-        lightGrd.addColorStop(0, 'rgba(255,220,150,0.08)');
-        lightGrd.addColorStop(1, 'rgba(255,220,150,0)');
-        ctx.fillStyle = lightGrd;
-        ctx.beginPath(); ctx.arc(player.x, player.y, 250, 0, Math.PI * 2); ctx.fill();
+        // ЗАЩИТА: рисуем виньетку только с валидными координатами
+        if (isFinite(player.x) && isFinite(player.y)) {
+            const vg = ctx.createRadialGradient(player.x, player.y, 150, player.x, player.y, 600);
+            vg.addColorStop(0, 'rgba(0,0,0,0)');
+            vg.addColorStop(1, 'rgba(0,0,0,0.85)');
+            ctx.fillStyle = vg;
+            ctx.fillRect(0, 0, W, H);
+            
+            const lightGrd = ctx.createRadialGradient(player.x, player.y, 30, player.x, player.y, 250);
+            lightGrd.addColorStop(0, 'rgba(255,220,150,0.08)');
+            lightGrd.addColorStop(1, 'rgba(255,220,150,0)');
+            ctx.fillStyle = lightGrd;
+            ctx.beginPath(); ctx.arc(player.x, player.y, 250, 0, Math.PI * 2); ctx.fill();
+        }
     },
 
     drawLadder(ctx, x, y) {
+        if (!isFinite(x) || !isFinite(y)) return;
         const t = State.globalTime * 0.005;
         const glowGrd = ctx.createRadialGradient(x, y, 5, x, y, 65);
         glowGrd.addColorStop(0, `rgba(255,220,100,${0.55 + Math.sin(t) * 0.2})`);
@@ -322,6 +323,7 @@ const MapModule = {
     },
 
     drawMinimap(ctx) {
+        if (!isFinite(State.player.x) || !isFinite(State.player.y)) return;
         const W = CONFIG.W, T = CONFIG.TILE;
         const mmW = 160, mmH = Math.floor(160 * State.MAP_H / State.MAP_W);
         const mmX = W - mmW - 10, mmY = 10;
@@ -374,6 +376,7 @@ const MapModule = {
         }
         
         for (const e of State.enemies) {
+            if (!isFinite(e.x) || !isFinite(e.y)) continue;
             ctx.fillStyle = e.isBoss ? '#f44' : (e.isElite ? '#fc6' : '#c44');
             ctx.beginPath();
             ctx.arc(mmX + e.x * scaleX, mmY + e.y * scaleY, e.isBoss ? 3.5 : (e.isElite ? 3 : 2), 0, Math.PI * 2);
@@ -382,6 +385,7 @@ const MapModule = {
         
         for (const chest of State.chests) {
             if (chest.opened) continue;
+            if (!isFinite(chest.x) || !isFinite(chest.y)) continue;
             ctx.fillStyle = '#fc6';
             ctx.fillRect(mmX + chest.x * scaleX - 1, mmY + chest.y * scaleY - 1, 3, 3);
         }
